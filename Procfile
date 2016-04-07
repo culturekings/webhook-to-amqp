@@ -1,1 +1,1 @@
-web: webhook
+web: webhook-to-amqp
