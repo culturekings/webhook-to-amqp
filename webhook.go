@@ -21,8 +21,11 @@ func failOnError(err error, msg string) {
 
 func handler(w http.ResponseWriter, r *http.Request) {
 
-	if r.Method == "POST" {
 		serverUrl := os.Getenv("AMQP_SERVER")
+		routingKey := os.Getenv("AMQP_ROUTING_KEY")
+		if routingKey == "" {
+			routingKey = "webhooks"
+		}
 		conn, err := amqp.Dial(serverUrl)
 		failOnError(err, "Failed to connect to RabbitMQ")
 		defer conn.Close()
@@ -34,22 +37,24 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		b, err := ioutil.ReadAll(r.Body)
 
 		type RequestFormat struct {
-			method string
-			url    *url.URL
-			headers map[string][]string
-			body   string
+			Method string
+			Url    *url.URL
+			Headers map[string][]string
+			Body   string
 		}
+
 		group := RequestFormat{
-			method: r.Method,
-			url:    r.URL,
-			headers: r.Header,
-			body:   string(b),
+			Method: r.Method,
+			Url:    r.URL,
+			Headers: r.Header,
+			Body:   string(b),
 		}
+
 		body, err := json.Marshal(&group)
 
 		err = ch.Publish(
 			"",         // exchange
-			"webhooks", // routing key
+			routingKey, // routing key
 			false,      // mandatory
 			false,
 			amqp.Publishing{
@@ -57,8 +62,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 				ContentType:  "text/plain",
 				Body:         []byte(body),
 			})
+
 		failOnError(err, "Failed to publish a message")
-	}
 
 }
 
