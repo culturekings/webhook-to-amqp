@@ -6,7 +6,8 @@ This simple project logs webhook events in to a RabbitMQ queue. The benefit of t
 
 1. Create app in Heroku
 2. Deploy this repository
-3. Set a "AMQP_SERVER" environmental variable in Heroku to point to your Queue Server
+3. Set a ``AMQP_SERVER`` environmental variable in Heroku to point to your Queue Server
+4. Optionally the queue routing key can be changed with a ``AMQP_ROUTING_KEY`` variable. The default is ``webhooks``
 
 ## Usage
 
